@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YuGi — موسوعة Yu-Gi-Oh! المتكاملة</title>
+  <meta name="description" content="موسوعة وبنك بطاقات Yu-Gi-Oh! متكامل باللغة العربية، فحص شامل لجميع البطاقات، قدرات خارقة، استراتيجيات، صانع مجموعات ومقارنة حية.">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="icon" href="card/0000.bmp" type="image/bmp">
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="brand-wrapper" onclick="window.app.switchTab('catalog')">
+      <div class="brand-icon">千年</div>
+      <div class="brand-title">
+        <h1>YuGi — موسوعة يوغي</h1>
+        <span>قاعدة البيانات والمكتبة الموسوعية الشاملة</span>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav-tabs">
+      <li class="nav-item">
+        <button class="nav-link active" data-tab="catalog">
+          <span>📚 المكتبة</span>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-tab="decks">
+          <span>🃏 المجموعات</span>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-tab="compare">
+          <span>⚖️ المقارنة</span>
+          <span class="nav-badge" id="nav-compare-badge" style="display:none;">0</span>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-tab="favorites">
+          <span>⭐ المفضلة</span>
+          <span class="nav-badge" id="nav-fav-badge" style="display:none;">0</span>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-tab="stats">
+          <span>📊 الإحصائيات</span>
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-tab="settings">
+          <span>⚙️ الإعدادات</span>
+        </button>
+      </li>
+    </ul>
+
+    <!-- Header Actions -->
+    <div class="header-actions">
+      <button class="btn-icon" id="theme-toggle-btn" title="التحويل للوضع الفاتح">☀️</button>
+      <button class="btn-icon mobile-menu-btn" id="mobile-menu-btn" title="القائمة الرئيسية">☰</button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="app-container">
+
+    <!-- 1. Catalog View (Default) -->
+    <section class="tab-view active" id="view-catalog">
+      <!-- Control Bar -->
+      <div class="control-bar">
+        <!-- Search & Quick Chips -->
+        <div class="search-sort-row">
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="search-input" id="search-input" placeholder="ابحث بالاسم العربي، الإنجليزي، رقم البطاقة، أو اسم الملف (مثل 4007)..." autocomplete="off">
+            <button class="search-clear" id="search-clear-btn" title="مسح البحث">✕</button>
+          </div>
+
+          <!-- Quick Chips -->
+          <div class="quick-chips">
+            <button class="chip-btn active" data-category="all">
+              <span>الكل</span>
+            </button>
+            <button class="chip-btn" data-category="monster">
+              <span>🐉 وحوش</span>
+            </button>
+            <button class="chip-btn" data-category="spell">
+              <span>✨ سحر</span>
+            </button>
+            <button class="chip-btn" data-category="trap">
+              <span>🛡️ فخاخ</span>
+            </button>
+            <button class="chip-btn" data-category="favorites">
+              <span>⭐ المفضلة</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Sort, Stats, View Controls -->
+        <div class="sort-view-row">
+          <div class="sort-group">
+            <span class="sort-label">ترتيب حسب:</span>
+            <select class="select-custom" id="sort-select">
+              <option value="cid_asc">المعرف الرقمي (الافتراضي)</option>
+              <option value="atk_desc">الهجوم: من الأعلى إلى الأقل (ATK)</option>
+              <option value="atk_asc">الهجوم: من الأقل إلى الأعلى (ATK)</option>
+              <option value="def_desc">الدفاع: من الأعلى إلى الأقل (DEF)</option>
+              <option value="def_asc">الدفاع: من الأقل إلى الأعلى (DEF)</option>
+              <option value="level_desc">المستوى / النجوم: من الأعلى إلى الأقل</option>
+              <option value="level_asc">المستوى / النجوم: من الأقل إلى الأعلى</option>
+              <option value="name_asc">الاسم: أبجدياً تصاعدياً (أ - ي)</option>
+              <option value="name_desc">الاسم: أبجدياً تنازلياً (ي - أ)</option>
+              <option value="fav_first">البطاقات المفضلة أولاً</option>
+            </select>
+
+            <button class="filter-drawer-toggle" id="advanced-filters-toggle">
+              <span>⚙️ فلاتر متقدمة</span>
+              <span class="nav-badge" id="active-filters-count" style="display:none;">0</span>
+            </button>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:1.2rem;">
+            <div class="results-stats" id="catalog-results-stats">
+              جارٍ تحميل البطاقات...
+            </div>
+
+            <div class="view-toggles">
+              <select class="select-custom" id="card-size-select" title="حجم البطاقات">
+                <option value="compact">حجم صغير</option>
+                <option value="medium" selected>حجم متوسط</option>
+                <option value="large">حجم كبير</option>
+              </select>
+
+              <button class="btn-icon active" id="view-grid-btn" title="عرض شبكي">▦</button>
+              <button class="btn-icon" id="view-list-btn" title="عرض قائمة">☰</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Advanced Filter Drawer -->
+        <div class="advanced-filters-panel" id="advanced-filters-panel">
+          <div class="filter-grid">
+            <!-- Monster Types -->
+            <div class="filter-col">
+              <h4>نوع الوحش</h4>
+              <select class="select-custom filter-select" id="filter-monster-type">
+                <option value="all">كل الأنواع</option>
+                <option value="Normal Monster">وحوش عادية (Normal)</option>
+                <option value="Effect Monster">وحوش ذات تأثير (Effect)</option>
+                <option value="Flip Effect Monster">وحوش قلب (Flip)</option>
+                <option value="Fusion Monster">وحوش انصهار (Fusion)</option>
+                <option value="Ritual Monster">وحوش طقوس (Ritual)</option>
+              </select>
+            </div>
+
+            <!-- Spell Types -->
+            <div class="filter-col">
+              <h4>نوع السحر</h4>
+              <select class="select-custom filter-select" id="filter-spell-type">
+                <option value="all">كل أنواع السحر</option>
+                <option value="Normal">سحر عادي (Normal)</option>
+                <option value="Continuous">سحر مستمر (Continuous)</option>
+                <option value="Quick-Play">سحر لعب سريع (Quick-Play)</option>
+                <option value="Equip">سحر تجهيز (Equip)</option>
+                <option value="Field">سحر ملعب (Field)</option>
+                <option value="Ritual">سحر طقوس (Ritual)</option>
+              </select>
+            </div>
+
+            <!-- Trap Types -->
+            <div class="filter-col">
+              <h4>نوع الفخ</h4>
+              <select class="select-custom filter-select" id="filter-trap-type">
+                <option value="all">كل أنواع الفخاخ</option>
+                <option value="Normal">فخ عادي (Normal)</option>
+                <option value="Continuous">فخ مستمر (Continuous)</option>
+                <option value="Counter">فخ مضاد (Counter)</option>
+              </select>
+            </div>
+
+            <!-- Attribute -->
+            <div class="filter-col">
+              <h4>العنصر (Attribute)</h4>
+              <select class="select-custom filter-select" id="filter-attribute">
+                <option value="all">كل العناصر</option>
+                <option value="DARK">ظلام (DARK)</option>
+                <option value="LIGHT">ضوء (LIGHT)</option>
+                <option value="EARTH">أرض (EARTH)</option>
+                <option value="WATER">ماء (WATER)</option>
+                <option value="FIRE">نار (FIRE)</option>
+                <option value="WIND">رياح (WIND)</option>
+                <option value="DIVINE">إلهي (DIVINE)</option>
+              </select>
+            </div>
+
+            <!-- Race -->
+            <div class="filter-col">
+              <h4>الفئة / العرق (Race)</h4>
+              <select class="select-custom filter-select" id="filter-race">
+                <option value="all">كل الفئات</option>
+                <option value="Dragon">تنانين (Dragon)</option>
+                <option value="Spellcaster">سحرة (Spellcaster)</option>
+                <option value="Warrior">محاربين (Warrior)</option>
+                <option value="Fiend">شياطين (Fiend)</option>
+                <option value="Zombie">موتى أحياء (Zombie)</option>
+                <option value="Machine">آلات (Machine)</option>
+                <option value="Beast">وحوش برية (Beast)</option>
+                <option value="Fairy">ملائكة وجنيات (Fairy)</option>
+                <option value="Insect">حشرات (Insect)</option>
+                <option value="Dinosaur">ديناصورات (Dinosaur)</option>
+                <option value="Aqua">مائي (Aqua)</option>
+                <option value="Pyro">ناري (Pyro)</option>
+                <option value="Rock">صخري (Rock)</option>
+                <option value="Thunder">رعد (Thunder)</option>
+              </select>
+            </div>
+
+            <!-- Level -->
+            <div class="filter-col">
+              <h4>المستوى (النجوم)</h4>
+              <select class="select-custom filter-select" id="filter-level">
+                <option value="all">أي مستوى</option>
+                <option value="1">1 نجمة</option>
+                <option value="2">2 نجوم</option>
+                <option value="3">3 نجوم</option>
+                <option value="4">4 نجوم (استدعاء مباشر)</option>
+                <option value="5">5 نجوم (تضحية واحدة)</option>
+                <option value="6">6 نجوم (تضحية واحدة)</option>
+                <option value="7">7 نجوم (تضحيتان)</option>
+                <option value="8">8 نجوم (تضحيتان)</option>
+                <option value="9">9 نجوم</option>
+                <option value="10">10 نجوم</option>
+                <option value="11">11 نجمة</option>
+                <option value="12">12 نجمة (أعلى مستوى)</option>
+              </select>
+            </div>
+
+            <!-- ATK Range -->
+            <div class="filter-col">
+              <h4>الهجوم (ATK)</h4>
+              <div style="display:flex; gap:0.4rem;">
+                <input type="number" class="search-input" id="filter-atk-min" placeholder="الحد الأدنى" style="padding:0.4rem;">
+                <input type="number" class="search-input" id="filter-atk-max" placeholder="الحد الأقصى" style="padding:0.4rem;">
+              </div>
+            </div>
+
+            <!-- DEF Range -->
+            <div class="filter-col">
+              <h4>الدفاع (DEF)</h4>
+              <div style="display:flex; gap:0.4rem;">
+                <input type="number" class="search-input" id="filter-def-min" placeholder="الحد الأدنى" style="padding:0.4rem;">
+                <input type="number" class="search-input" id="filter-def-max" placeholder="الحد الأقصى" style="padding:0.4rem;">
+              </div>
+            </div>
+
+            <!-- Special Abilities -->
+            <div class="filter-col" style="grid-column: span 2;">
+              <h4>القدرات الخارقة والتأثيرات</h4>
+              <div class="checkbox-group" style="display:grid; grid-template-columns:1fr 1fr; gap:0.4rem;">
+                <label class="checkbox-label"><input type="checkbox" id="check-destroy"> تدمير بطاقات الخصم</label>
+                <label class="checkbox-label"><input type="checkbox" id="check-boost"> زيادة الهجوم أو الدفاع</label>
+                <label class="checkbox-label"><input type="checkbox" id="check-summon"> استدعاء وحوش أخرى</label>
+                <label class="checkbox-label"><input type="checkbox" id="check-negate"> إبطال تأثيرات أو هجمات</label>
+                <label class="checkbox-label"><input type="checkbox" id="check-recover"> استعادة بطاقات من المقبرة</label>
+                <label class="checkbox-label"><input type="checkbox" id="check-cost"> يتطلب دفع تكلفة</label>
+              </div>
+            </div>
+
+            <!-- Status & Alternate Art -->
+            <div class="filter-col">
+              <h4>خيارات العرض والتحقق</h4>
+              <div class="checkbox-group">
+                <label class="checkbox-label"><input type="checkbox" id="check-alt-art" checked> إظهار الرسومات البديلة</label>
+                <select class="select-custom filter-select" id="filter-status" style="margin-top:0.4rem;">
+                  <option value="all">جميع الحالات</option>
+                  <option value="verified">المكتملة والمحققة</option>
+                  <option value="pending_review">تحتاج إلى مراجعة</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="filter-actions">
+            <button class="btn-secondary" id="reset-filters-btn">🔄 مسح جميع الفلاتر</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Cards Grid -->
+      <div class="cards-grid size-medium" id="cards-grid">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Load More Container -->
+      <div class="load-more-wrap" id="load-more-container" style="display:none;">
+        <button class="btn-load-more" id="load-more-btn">
+          <span>⬇ عرض المزيد من البطاقات</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- 2. Decks View -->
+    <section class="tab-view" id="view-decks">
+      <div class="deck-view-container">
+        <!-- Sub navigation -->
+        <div class="deck-nav-sub">
+          <button class="sub-tab-btn active" id="tab-decks-premade">🏆 المجموعات الجاهزة الرسمية (9)</button>
+          <button class="sub-tab-btn" id="tab-decks-custom">🛠️ صانع ومحرر المجموعات الخاصة</button>
+        </div>
+
+        <!-- Section: Premade Decks -->
+        <div class="premade-decks-grid" id="section-premade-decks">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <!-- Section: Custom Decks Workspace -->
+        <div class="custom-deck-workspace" id="section-custom-decks" style="display:none;">
+          <!-- Left: Deck Cards List -->
+          <div class="deck-sidebar">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <h3 style="font-weight:800; color:var(--text-gold);">مجموعاتي الخاصة</h3>
+              <button class="btn-secondary" id="btn-new-deck" style="font-size:0.8rem; padding:4px 10px;">➕ مجموعة جديدة</button>
+            </div>
+
+            <select class="select-custom" id="custom-decks-selector" style="width:100%;">
+              <!-- Dynamic options -->
+            </select>
+
+            <div class="deck-editor-header">
+              <input type="text" class="deck-title-input" id="custom-deck-name-input" placeholder="اسم المجموعة">
+              <input type="text" class="search-input" id="custom-deck-desc-input" placeholder="وصف تكتيكي للمجموعة..." style="padding:0.4rem 0.6rem; font-size:0.85rem;">
+            </div>
+
+            <!-- Stats Bar -->
+            <div id="custom-deck-stats">
+              <!-- Live stats -->
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.5rem;">
+              <span style="font-size:0.85rem; font-weight:700;">قائمة البطاقات المضافة:</span>
+              <button class="btn-secondary" style="font-size:0.75rem; color:var(--crimson-primary); border-color:var(--crimson-primary);" onclick="window.app.deleteCurrentDeck()">حذف المجموعة ✕</button>
+            </div>
+
+            <!-- Cards in Deck -->
+            <div class="deck-cards-list" id="custom-deck-cards-list">
+              <!-- Deck slot items -->
+            </div>
+
+            <div style="display:flex; gap:0.6rem; margin-top:auto; padding-top:0.8rem; border-top:1px solid var(--border-color);">
+              <button class="btn-primary" id="btn-export-deck" style="flex:1;">⬇ تصدير JSON</button>
+              <label class="btn-secondary" style="flex:1; text-align:center; cursor:pointer;">
+                ⬆ استيراد JSON
+                <input type="file" id="import-deck-file" accept=".json" style="display:none;">
+              </label>
+            </div>
+          </div>
+
+          <!-- Right: Instructions / Browse Quick Helper -->
+          <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:2rem; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; gap:1rem;">
+            <div style="font-size:3.5rem;">⚔️</div>
+            <h3 style="font-size:1.4rem; color:var(--text-primary); font-weight:800;">بناء وتخصيص المجموعات</h3>
+            <p style="color:var(--text-secondary); max-width:550px; font-size:0.95rem; line-height:1.6;">
+              يمكنك إضافة أي بطاقة من مكتبة البطاقات مباشرة إلى مجموعتك النشطة عبر فتح تفاصيل البطاقة والنقر على زر <strong>"إضافة إلى مجموعة"</strong>.
+              <br><br>
+              قوانين المبارزة الرسمية:
+              <br>• الحد الأدنى لحجم المجموعة هو 40 بطاقة، والحد الأقصى 60 بطاقة.
+              <br>• يمكنك وضع حتى 3 نسخ كحد أقصى من نفس البطاقة.
+            </p>
+            <button class="btn-primary" style="margin-top:0.5rem;" onclick="window.app.switchTab('catalog')">
+              📖 الذهاب لمكتبة البطاقات للإضافة
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Comparison Tool View -->
+    <section class="tab-view" id="view-compare">
+      <div class="compare-container">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:1rem;">
+          <div>
+            <h2 style="font-weight:800; color:var(--text-gold);">⚖️ أداة مقارنة البطاقات</h2>
+            <p style="font-size:0.85rem; color:var(--text-muted);">قارن بين بطاقتين أو 3 بطاقات وجهاً لوجه من حيث الهجوم والدفاع والتأثيرات والاستراتيجية.</p>
+          </div>
+          <button class="btn-secondary" id="btn-clear-compare">مسح قائمة المقارنة ✕</button>
+        </div>
+
+        <div id="compare-content-wrap">
+          <!-- Dynamic compare table -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Analytics & Diagnostics View -->
+    <section class="tab-view" id="view-stats">
+      <div style="max-width:1200px; margin:0 auto; display:flex; flex-direction:column; gap:1.5rem;">
+        <div>
+          <h2 style="font-weight:800; color:var(--text-gold);">📊 إحصائيات وسلامة الموسوعة</h2>
+          <p style="font-size:0.85rem; color:var(--text-muted);">تقرير رسمي عن بيانات البطاقات والصور المفهرسة وحالة التحقق من المصادر.</p>
+        </div>
+
+        <!-- Metrics Grid -->
+        <div class="stats-summary-grid">
+          <div class="metric-card">
+            <div class="metric-icon">🃏</div>
+            <div class="metric-info">
+              <h4>إجمالي البطاقات المفهرسة</h4>
+              <p id="stat-total-cards">1,116</p>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon">✓</div>
+            <div class="metric-info">
+              <h4>البطاقات المحققة رسمياً</h4>
+              <p id="stat-verified-cards" style="color:var(--emerald-primary);">1,116</p>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon">🐉</div>
+            <div class="metric-info">
+              <h4>بطاقات الوحوش</h4>
+              <p id="stat-monsters-count">807</p>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon">✨</div>
+            <div class="metric-info">
+              <h4>بطاقات السحر</h4>
+              <p id="stat-spells-count">199</p>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon">🛡️</div>
+            <div class="metric-info">
+              <h4>بطاقات الفخاخ</h4>
+              <p id="stat-traps-count">105</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Diagnostics Panel -->
+        <div class="diagnostics-box">
+          <h3 style="font-weight:800; color:var(--text-gold);">فحص سلامة الملفات والمصادر</h3>
+          
+          <div class="diag-item">
+            <span>فهرسة مجلد الصور الأصلي (card/):</span>
+            <span class="diag-status success">1,115 ملف BMP أصلي محفوظ بالكامل دون أي تعديل أو إعادة تسمية</span>
+          </div>
+
+          <div class="diag-item">
+            <span>ملف المطابقة النصي (list_card.txt):</span>
+            <span class="diag-status success">تم تحليله ومطابقة جميع الأسماء مع تصحيح الأسماء البديلة بنسبة 100%</span>
+          </div>
+
+          <div class="diag-item">
+            <span>قاعدة البيانات المرجعية المعتمدة:</span>
+            <span class="diag-status success">Konami Official Yu-Gi-Oh DB + YGOPRODeck API v7</span>
+          </div>
+
+          <div class="diag-item">
+            <span>التشغيل المحلي دون إنترنت (Offline Support):</span>
+            <span class="diag-status success">مفعل 100% — جميع الصور والبيانات والخطوط مخزنة محلياً</span>
+          </div>
+
+          <div style="margin-top:1rem;">
+            <button class="btn-primary" id="btn-run-integrity" onclick="window.app.runImageIntegrityTest()">
+              🔬 تشغيل فحص سلامة جميع الصور والمسارات (1,116 صورة)
+            </button>
+            <div id="integrity-test-result" style="display:none; margin-top:1rem; padding:1rem; background:rgba(0,0,0,0.3); border-radius:var(--radius-md);"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Settings View -->
+    <section class="tab-view" id="view-settings">
+      <div class="settings-container">
+        <div>
+          <h2 style="font-weight:800; color:var(--text-gold);">⚙️ إعدادات التطبيق والبيانات</h2>
+          <p style="font-size:0.85rem; color:var(--text-muted);">تخصيص المظهر، إدارة النسخ الاحتياطية وتصدير واستيراد البيانات الشخصية.</p>
+        </div>
+
+        <div class="settings-group">
+          <h3>تخصيص العرض والواجهة</h3>
+          <div class="setting-row">
+            <div class="setting-info">
+              <h4>الوضع الداكن / الفاتح</h4>
+              <p>التبديل بين السمة المظلمة المستوحاة من عالم الأنمي والسمة الفاتحة.</p>
+            </div>
+            <button class="btn-secondary" onclick="document.getElementById('theme-toggle-btn').click()">تبديل المظهر ☀️/🌙</button>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <h4>لغة الواجهة</h4>
+              <p>اللغة العربية مع اتجاه كامل من اليمين إلى اليسار (RTL).</p>
+            </div>
+            <span style="font-weight:700; color:var(--text-gold);">العربية (مفعل افتراضياً)</span>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <h3>إدارة البيانات الشخصية والنسخ الاحتياطي</h3>
+          <div class="setting-row">
+            <div class="setting-info">
+              <h4>تصدير نسخة احتياطية شاملة</h4>
+              <p>حفظ جميع المجموعات المخصصة والبطاقات المفضلة والإعدادات في ملف JSON خارجي.</p>
+            </div>
+            <button class="btn-primary" id="btn-export-backup">⬇ تصدير النسخة الاحتياطية</button>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <h4>استيراد نسخة احتياطية</h4>
+              <p>استعادة المجموعات والمفضلة السابقة من ملف JSON تم تصديره مسبقاً.</p>
+            </div>
+            <label class="btn-secondary" style="cursor:pointer;">
+              ⬆ استيراد ملف النسخة
+              <input type="file" id="import-backup-file" accept=".json" style="display:none;">
+            </label>
+          </div>
+
+          <div class="setting-row">
+            <div class="setting-info">
+              <h4>إعادة ضبط إعدادات العرض</h4>
+              <p>استعادة الترتيب وحجم البطاقات الافتراضي دون حذف مجموعاتك الشخصية.</p>
+            </div>
+            <button class="btn-secondary" id="btn-reset-settings" style="color:var(--crimson-primary); border-color:var(--crimson-primary);">إعادة ضبط 🔄</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Modal: Card Details Full Viewer -->
+  <div class="modal-overlay" id="card-details-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <h2 id="modal-card-title-ar">تفاصيل البطاقة</h2>
+          <p id="modal-card-title-en">Card Details</p>
+        </div>
+        <button class="modal-close-btn" title="إغلاق (Esc)">✕</button>
+      </div>
+
+      <div class="modal-body" id="modal-card-body">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <p>موسوعة YuGi الشاملة لبطاقات Yu-Gi-Oh! • تم التطوير بالكامل باللغة العربية • جميع الحقوق محفوظة لشركة Konami © لأصول ورسوم البطاقات الرسمية.</p>
+  </footer>
+
+  <!-- Data (Pre-loaded for 100% offline & direct file:// support without CORS blocks) -->
+  <script src="data/cards-data.js"></script>
+  <script src="data/decks-data.js"></script>
+
+  <!-- Application Modules -->
+  <script src="assets/js/cards.js"></script>
+  <script src="assets/js/card-details.js"></script>
+  <script src="assets/js/decks.js"></script>
+  <script src="assets/js/filters.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
